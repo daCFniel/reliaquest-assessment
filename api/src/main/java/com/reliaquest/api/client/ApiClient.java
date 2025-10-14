@@ -2,18 +2,24 @@ package com.reliaquest.api.client;
 
 import com.reliaquest.api.dto.ApiResponse;
 import com.reliaquest.api.dto.Employee;
+import com.reliaquest.api.exception.ApiClientException;
+import com.reliaquest.api.exception.RateLimitException;
+import com.reliaquest.api.exception.ResourceNotFoundException;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-
-import java.util.List;
 
 /**
  * Client for communicating with the mock employee API.
  */
 @Component
 public class ApiClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(ApiClient.class);
 
     private final RestClient restClient;
 
@@ -22,22 +28,50 @@ public class ApiClient {
     }
 
     public List<Employee> fetchAllEmployees() {
-        final ParameterizedTypeReference<ApiResponse<List<Employee>>> responseType = new ParameterizedTypeReference<>() {
-        };
+        logger.info("Fetching all employees from mock API");
 
-        final var apiResponse = restClient.get()
-                .uri("/employee")
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (req, res) -> {
-                    throw new IllegalStateException("Failed to fetch employees: " + res.getStatusCode());
-                })
-                .body(responseType);
+        try {
+            final ParameterizedTypeReference<ApiResponse<List<Employee>>> responseType =
+                    new ParameterizedTypeReference<>() {};
 
-        if (apiResponse == null || apiResponse.getData() == null) {
-            throw new IllegalStateException("Empty or invalid API response");
+            ApiResponse<List<Employee>> apiResponse = restClient
+                    .get()
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                        if (response.getStatusCode().value() == 429) {
+                            logger.warn("Rate limit exceeded while fetching employees");
+                            throw new RateLimitException("Rate limit exceeded. Please try again later.");
+                        } else if (response.getStatusCode().value() == 404) {
+                            logger.warn("Employees endpoint not found");
+                            throw new ResourceNotFoundException("Employees not found");
+                        }
+                        logger.error("Client error while fetching employees: {}", response.getStatusCode());
+                        throw new ApiClientException("Client error: " + response.getStatusCode());
+                    })
+                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+                        logger.error("Server error while fetching employees: {}", response.getStatusCode());
+                        throw new ApiClientException("Server error from external API: " + response.getStatusCode());
+                    })
+                    .body(responseType);
+
+            if (apiResponse == null || apiResponse.getData() == null) {
+                logger.error("Received empty or invalid API response");
+                throw new ApiClientException("Empty or invalid API response");
+            }
+
+            logger.debug(
+                    "Successfully fetched {} employees", apiResponse.getData().size());
+            return apiResponse.getData();
+
+        } catch (Exception e) {
+            if (e instanceof ApiClientException
+                    || e instanceof RateLimitException
+                    || e instanceof ResourceNotFoundException) {
+                throw e;
+            }
+            logger.error("Error communicating with external API: {}", e.getMessage(), e);
+            throw new ApiClientException("Failed to communicate with external API", e);
         }
-
-        return apiResponse.getData();
     }
 
     public Employee createEmployee(final Employee employee) {
