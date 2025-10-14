@@ -1,7 +1,13 @@
 package com.reliaquest.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import com.reliaquest.api.client.ApiClient;
+import com.reliaquest.api.dto.CreateEmployeeRequest;
 import com.reliaquest.api.dto.Employee;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,13 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 /**
  * Business Logic Tests
@@ -59,7 +58,6 @@ class EmployeeServiceTest {
 
         allEmployees = Arrays.asList(employee1, employee2, employee3);
     }
-
 
     @Test
     @DisplayName("getAllEmployees should return all employees from API")
@@ -166,14 +164,22 @@ class EmployeeServiceTest {
     @Test
     @DisplayName("getTopTenHighestEarningEmployeeNames should limit to 10 employees")
     void getTopTenHighestEarningEmployeeNames_ShouldLimitTo10() {
-        List<Employee> manyEmployees = Arrays.asList(createEmployee("1", "Emp1", 100000),
-                createEmployee("2", "Emp2", 95000), createEmployee("3", "Emp3", 90000),
-                createEmployee("4", "Emp4", 85000), createEmployee("5", "Emp5", 80000),
-                createEmployee("6", "Emp6", 75000), createEmployee("7", "Emp7", 70000),
-                createEmployee("8", "Emp8", 65000), createEmployee("9", "Emp9", 60000),
-                createEmployee("10", "Emp10", 55000), createEmployee("11", "Emp11", 50000),
-                createEmployee("12", "Emp12", 45000), createEmployee("13", "Emp13", 40000),
-                createEmployee("14", "Emp14", 35000), createEmployee("15", "Emp15", 30000));
+        List<Employee> manyEmployees = Arrays.asList(
+                createEmployee("1", "Emp1", 100000),
+                createEmployee("2", "Emp2", 95000),
+                createEmployee("3", "Emp3", 90000),
+                createEmployee("4", "Emp4", 85000),
+                createEmployee("5", "Emp5", 80000),
+                createEmployee("6", "Emp6", 75000),
+                createEmployee("7", "Emp7", 70000),
+                createEmployee("8", "Emp8", 65000),
+                createEmployee("9", "Emp9", 60000),
+                createEmployee("10", "Emp10", 55000),
+                createEmployee("11", "Emp11", 50000),
+                createEmployee("12", "Emp12", 45000),
+                createEmployee("13", "Emp13", 40000),
+                createEmployee("14", "Emp14", 35000),
+                createEmployee("15", "Emp15", 30000));
         when(mockApiClient.fetchAllEmployees()).thenReturn(manyEmployees);
 
         List<String> result = employeeService.getTopTenHighestEarningEmployeeNames();
@@ -185,7 +191,7 @@ class EmployeeServiceTest {
     @Test
     @DisplayName("createEmployee should create employee via API")
     void createEmployee_ShouldCreateEmployee() {
-        Map<String, String> input = Map.of("name", "New Employee", "salary", "80000", "age", "32", "title", "Manager");
+        CreateEmployeeRequest input = new CreateEmployeeRequest("New Employee", 80000, 32, "Manager");
 
         Employee createdEmployee = new Employee();
         createdEmployee.setId("4");
@@ -207,7 +213,7 @@ class EmployeeServiceTest {
     void deleteEmployeeById_ShouldDeleteAndReturnName() {
         when(mockApiClient.fetchAllEmployees()).thenReturn(allEmployees);
 
-         when(mockApiClient.deleteEmployee("1")).thenReturn(true);
+        when(mockApiClient.deleteEmployee("1")).thenReturn(true);
 
         String result = employeeService.deleteEmployeeById("1");
 

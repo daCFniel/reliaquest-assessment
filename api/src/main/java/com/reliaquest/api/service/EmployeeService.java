@@ -1,17 +1,20 @@
 package com.reliaquest.api.service;
 
 import com.reliaquest.api.client.ApiClient;
+import com.reliaquest.api.dto.CreateEmployeeRequest;
 import com.reliaquest.api.dto.Employee;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 /**
  * Service layer that contains the core business logic for employee operations.
  */
 @Service
 public class EmployeeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
     private final ApiClient mockApiClient;
 
@@ -25,14 +28,14 @@ public class EmployeeService {
     }
 
     /**
-     * Retrieves all employees from the mock API.
-     *
-     * @return a list of all employees
+     * Responsible for fetching all employees from the mock API
      */
     public List<Employee> getAllEmployees() {
-        return mockApiClient.fetchAllEmployees();
+        logger.info("Service: Fetching all employees");
+        List<Employee> employees = mockApiClient.fetchAllEmployees();
+        logger.info("Service: Retrieved {} employees", employees.size());
+        return employees;
     }
-
     /**
      * Searches for employees whose names contain the search string (case-insensitive).
      *
@@ -78,10 +81,11 @@ public class EmployeeService {
     /**
      * Creates a new employee in the system.
      *
-     * @param employeeInput a map containing employee data (name, salary, age, etc.)
+     * @param employeeRequest the employee data to create
      * @return the newly created employee with its assigned ID
      */
-    public Employee createEmployee(final Map<String, String> employeeInput) {
+    public Employee createEmployee(final CreateEmployeeRequest employeeRequest) {
+        logger.info("Creating employee: {}", employeeRequest.getName());
         // TODO: implement
         return null;
     }

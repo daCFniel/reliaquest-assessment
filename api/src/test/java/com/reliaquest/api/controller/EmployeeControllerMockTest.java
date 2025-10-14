@@ -1,7 +1,13 @@
 package com.reliaquest.api.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+import com.reliaquest.api.dto.CreateEmployeeRequest;
 import com.reliaquest.api.dto.Employee;
 import com.reliaquest.api.service.EmployeeService;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,13 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EmployeeControllerMockTest {
@@ -76,7 +75,6 @@ class EmployeeControllerMockTest {
         verify(employeeService, times(1)).getAllEmployees();
     }
 
-
     @Test
     @DisplayName("Should return employees matching name search")
     void getEmployeesByNameSearch_ShouldReturnMatchingEmployees() {
@@ -104,7 +102,6 @@ class EmployeeControllerMockTest {
         assertThat(response.getBody()).isEmpty();
         verify(employeeService, times(1)).searchEmployeesByName(searchString);
     }
-
 
     @Test
     @DisplayName("Should return employee by ID")
@@ -174,8 +171,7 @@ class EmployeeControllerMockTest {
     @Test
     @DisplayName("Should create employee successfully")
     void createEmployee_ShouldCreateAndReturnEmployee() {
-        Map<String, String> employeeInput = Map.of("name", "New Employee", "salary", "60000", "age", "28", "title",
-                "Junior Developer");
+        CreateEmployeeRequest employeeInput = new CreateEmployeeRequest("New Employee", 60000, 28, "Junior Developer");
         Employee createdEmployee = new Employee();
         createdEmployee.setId("3");
         createdEmployee.setName("New Employee");
