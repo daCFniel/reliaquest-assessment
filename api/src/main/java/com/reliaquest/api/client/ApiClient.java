@@ -41,23 +41,23 @@ public class ApiClient {
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
                         if (response.getStatusCode().value() == 429) {
                             logger.warn("Rate limit exceeded while fetching employees");
-                            throw new RateLimitException("Rate limit exceeded. Please try again later.");
+                            throw new RateLimitException("Rate limit exceeded while fetching employees. Please try again later.");
                         } else if (response.getStatusCode().value() == 404) {
                             logger.warn("Employees endpoint not found");
-                            throw new ResourceNotFoundException("Employees not found");
+                            throw new ResourceNotFoundException("Employee endpoint not found");
                         }
                         logger.error("Client error while fetching employees: {}", response.getStatusCode());
-                        throw new ApiClientException("Client error: " + response.getStatusCode());
+                        throw new ApiClientException("Failed to fetch employees: HTTP " + response.getStatusCode());
                     })
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
                         logger.error("Server error while fetching employees: {}", response.getStatusCode());
-                        throw new ApiClientException("Server error from external API: " + response.getStatusCode());
+                        throw new ApiClientException("External API server error while fetching employees: " + response.getStatusCode());
                     })
                     .body(responseType);
 
             if (apiResponse == null || apiResponse.getData() == null) {
-                logger.error("Received empty or invalid API response");
-                throw new ApiClientException("Empty or invalid API response");
+                logger.error("Received empty or invalid API response while fetching employees");
+                throw new ApiClientException("No employee data received from external API");
             }
 
             logger.debug(
@@ -89,23 +89,23 @@ public class ApiClient {
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
                         if (response.getStatusCode().value() == 429) {
                             logger.warn("Rate limit exceeded while creating employee: {}", employeeRequest.getName());
-                            throw new RateLimitException("Rate limit exceeded. Please try again later.");
+                            throw new RateLimitException("Rate limit exceeded while creating employee. Please try again later.");
                         } else if (response.getStatusCode().value() == 400) {
                             logger.warn("Bad request while creating employee: {}", employeeRequest.getName());
-                            throw new ApiClientException("Invalid employee data");
+                            throw new ApiClientException("Invalid employee data provided");
                         }
                         logger.error("Client error while creating employee {}: {}", employeeRequest.getName(), response.getStatusCode());
-                        throw new ApiClientException("Client error: " + response.getStatusCode());
+                        throw new ApiClientException("Failed to create employee: HTTP " + response.getStatusCode());
                     })
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
                         logger.error("Server error while creating employee {}: {}", employeeRequest.getName(), response.getStatusCode());
-                        throw new ApiClientException("Server error from external API: " + response.getStatusCode());
+                        throw new ApiClientException("External API server error while creating employee: " + response.getStatusCode());
                     })
                     .body(responseType);
 
             if (apiResponse == null || apiResponse.getData() == null) {
                 logger.error("Received empty or invalid API response while creating employee: {}", employeeRequest.getName());
-                throw new ApiClientException("Empty or invalid API response");
+                throw new ApiClientException("No employee data received after creation");
             }
 
             logger.debug("Successfully created employee with id: {}", apiResponse.getData().getId());
@@ -140,23 +140,23 @@ public class ApiClient {
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
                         if (response.getStatusCode().value() == 429) {
                             logger.warn("Rate limit exceeded while deleting employee: {}", name);
-                            throw new RateLimitException("Rate limit exceeded. Please try again later.");
+                            throw new RateLimitException("Rate limit exceeded while deleting employee. Please try again later.");
                         } else if (response.getStatusCode().value() == 404) {
                             logger.warn("Employee not found for deletion: {}", name);
-                            throw new ResourceNotFoundException("Employee not found: " + name);
+                            throw new ResourceNotFoundException("Employee '" + name + "' not found");
                         }
                         logger.error("Client error while deleting employee {}: {}", name, response.getStatusCode());
-                        throw new ApiClientException("Client error: " + response.getStatusCode());
+                        throw new ApiClientException("Failed to delete employee: HTTP " + response.getStatusCode());
                     })
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
                         logger.error("Server error while deleting employee {}: {}", name, response.getStatusCode());
-                        throw new ApiClientException("Server error from external API: " + response.getStatusCode());
+                        throw new ApiClientException("External API server error while deleting employee: " + response.getStatusCode());
                     })
                     .body(responseType);
 
             if (apiResponse == null || apiResponse.getData() == null) {
                 logger.error("Received empty or invalid API response while deleting employee: {}", name);
-                throw new ApiClientException("Empty or invalid API response");
+                throw new ApiClientException("No confirmation received from delete operation");
             }
 
             logger.debug("Successfully deleted employee: {}", name);
