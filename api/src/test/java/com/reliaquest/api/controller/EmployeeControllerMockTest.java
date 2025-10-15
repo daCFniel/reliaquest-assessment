@@ -8,6 +8,8 @@ import com.reliaquest.api.dto.Employee;
 import com.reliaquest.api.service.EmployeeService;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -133,7 +135,7 @@ class EmployeeControllerMockTest {
     @DisplayName("Should return highest salary")
     void getHighestSalaryOfEmployees_ShouldReturnHighestSalary() {
         Integer expectedHighestSalary = 75000;
-        when(employeeService.getHighestSalary()).thenReturn(expectedHighestSalary);
+        when(employeeService.getHighestSalary()).thenReturn(Optional.of(expectedHighestSalary));
 
         ResponseEntity<Integer> response = employeeController.getHighestSalaryOfEmployees();
 
@@ -143,14 +145,13 @@ class EmployeeControllerMockTest {
     }
 
     @Test
-    @DisplayName("Should return 0 when no employees exist")
-    void getHighestSalaryOfEmployees_WhenNoEmployees_ShouldReturnZero() {
-        when(employeeService.getHighestSalary()).thenReturn(0);
+    @DisplayName("Should return NOT FOUND when no employees exist")
+    void getHighestSalaryOfEmployees_WhenNoEmployees_ShouldReturn404() {
+        when(employeeService.getHighestSalary()).thenReturn(Optional.empty());
 
         ResponseEntity<Integer> response = employeeController.getHighestSalaryOfEmployees();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo(0);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         verify(employeeService, times(1)).getHighestSalary();
     }
 

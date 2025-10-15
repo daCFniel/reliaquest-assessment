@@ -8,6 +8,8 @@ import com.reliaquest.api.dto.CreateEmployeeRequest;
 import com.reliaquest.api.dto.Employee;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -133,20 +135,20 @@ class EmployeeServiceTest {
     void getHighestSalary_ShouldReturnHighestSalary() {
         when(mockApiClient.fetchAllEmployees()).thenReturn(allEmployees);
 
-        Integer result = employeeService.getHighestSalary();
+        Optional<Integer> result = employeeService.getHighestSalary();
 
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(75000);
+        assertThat(result).isEqualTo(Optional.of(75000));
     }
 
     @Test
-    @DisplayName("getHighestSalary should return 0 when no employees")
-    void getHighestSalary_WhenNoEmployees_ShouldReturnZero() {
+    @DisplayName("getHighestSalary should return empty optional when no employees")
+    void getHighestSalary_WhenNoEmployees_ShouldReturnEmptyOptional() {
         when(mockApiClient.fetchAllEmployees()).thenReturn(List.of());
 
-        Integer result = employeeService.getHighestSalary();
+        Optional<Integer> result = employeeService.getHighestSalary();
 
-        assertThat(result).isEqualTo(0);
+        assertThat(result).isEqualTo(Optional.empty());
     }
 
     @Test
@@ -165,7 +167,6 @@ class EmployeeServiceTest {
     @DisplayName("getTopTenHighestEarningEmployeeNames should limit to 10 employees")
     void getTopTenHighestEarningEmployeeNames_ShouldLimitTo10() {
         List<Employee> manyEmployees = Arrays.asList(
-                createEmployee("1", "Emp1", 100000),
                 createEmployee("2", "Emp2", 95000),
                 createEmployee("3", "Emp3", 90000),
                 createEmployee("4", "Emp4", 85000),
@@ -174,6 +175,7 @@ class EmployeeServiceTest {
                 createEmployee("7", "Emp7", 70000),
                 createEmployee("8", "Emp8", 65000),
                 createEmployee("9", "Emp9", 60000),
+                createEmployee("1", "Emp1", 100000),
                 createEmployee("10", "Emp10", 55000),
                 createEmployee("11", "Emp11", 50000),
                 createEmployee("12", "Emp12", 45000),
@@ -213,7 +215,7 @@ class EmployeeServiceTest {
     void deleteEmployeeById_ShouldDeleteAndReturnName() {
         when(mockApiClient.fetchAllEmployees()).thenReturn(allEmployees);
 
-        when(mockApiClient.deleteEmployee("1")).thenReturn(true);
+        when(mockApiClient.deleteEmployee("John Doe")).thenReturn(true);
 
         String result = employeeService.deleteEmployeeById("1");
 

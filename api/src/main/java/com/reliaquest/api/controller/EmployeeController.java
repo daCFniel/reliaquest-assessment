@@ -6,6 +6,8 @@ import com.reliaquest.api.service.EmployeeService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -59,9 +61,11 @@ public class EmployeeController implements IEmployeeController<Employee, CreateE
     @Override
     public ResponseEntity<Integer> getHighestSalaryOfEmployees() {
         logger.info("Received request to get highest salary");
-        Integer highestSalary = employeeService.getHighestSalary();
+        Optional<Integer> highestSalary = employeeService.getHighestSalary();
         logger.debug("Highest salary: {}", highestSalary);
-        return ResponseEntity.ok(highestSalary);
+        return highestSalary
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Override

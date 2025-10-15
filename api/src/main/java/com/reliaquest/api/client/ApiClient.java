@@ -1,6 +1,7 @@
 package com.reliaquest.api.client;
 
 import com.reliaquest.api.dto.ApiResponse;
+import com.reliaquest.api.dto.CreateEmployeeRequest;
 import com.reliaquest.api.dto.Employee;
 import com.reliaquest.api.exception.ApiClientException;
 import com.reliaquest.api.exception.RateLimitException;
@@ -74,12 +75,101 @@ public class ApiClient {
         }
     }
 
-    public Employee createEmployee(final Employee employee) {
-        // TODO: implement
-        return null;
+    public Employee createEmployee(final CreateEmployeeRequest employeeRequest) {
+        logger.info("Creating employee in mock API: {}", employeeRequest.getName());
+
+        try {
+            final ParameterizedTypeReference<ApiResponse<Employee>> responseType =
+                    new ParameterizedTypeReference<>() {};
+
+            ApiResponse<Employee> apiResponse = restClient
+                    .post()
+                    .body(employeeRequest)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                        if (response.getStatusCode().value() == 429) {
+                            logger.warn("Rate limit exceeded while creating employee: {}", employeeRequest.getName());
+                            throw new RateLimitException("Rate limit exceeded. Please try again later.");
+                        } else if (response.getStatusCode().value() == 400) {
+                            logger.warn("Bad request while creating employee: {}", employeeRequest.getName());
+                            throw new ApiClientException("Invalid employee data");
+                        }
+                        logger.error("Client error while creating employee {}: {}", employeeRequest.getName(), response.getStatusCode());
+                        throw new ApiClientException("Client error: " + response.getStatusCode());
+                    })
+                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+                        logger.error("Server error while creating employee {}: {}", employeeRequest.getName(), response.getStatusCode());
+                        throw new ApiClientException("Server error from external API: " + response.getStatusCode());
+                    })
+                    .body(responseType);
+
+            if (apiResponse == null || apiResponse.getData() == null) {
+                logger.error("Received empty or invalid API response while creating employee: {}", employeeRequest.getName());
+                throw new ApiClientException("Empty or invalid API response");
+            }
+
+            logger.debug("Successfully created employee with id: {}", apiResponse.getData().getId());
+            return apiResponse.getData();
+
+        } catch (Exception e) {
+            if (e instanceof ApiClientException
+                    || e instanceof RateLimitException
+                    || e instanceof ResourceNotFoundException) {
+                throw e;
+            }
+            logger.error("Error communicating with external API while creating employee {}: {}", employeeRequest.getName(), e.getMessage(), e);
+            throw new ApiClientException("Failed to communicate with external API", e);
+        }
     }
 
-    public boolean deleteEmployee(final String id) {
-        return false;
+    public boolean deleteEmployee(final String name) {
+        logger.info("Deleting employee from mock API: {}", name);
+
+        try {
+            final ParameterizedTypeReference<ApiResponse<Boolean>> responseType =
+                    new ParameterizedTypeReference<>() {};
+
+            // Create request body matching DeleteMockEmployeeInput
+            var deleteRequest = new java.util.HashMap<String, String>();
+            deleteRequest.put("name", name);
+
+            ApiResponse<Boolean> apiResponse = restClient
+                    .method(org.springframework.http.HttpMethod.DELETE)
+                    .body(deleteRequest)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                        if (response.getStatusCode().value() == 429) {
+                            logger.warn("Rate limit exceeded while deleting employee: {}", name);
+                            throw new RateLimitException("Rate limit exceeded. Please try again later.");
+                        } else if (response.getStatusCode().value() == 404) {
+                            logger.warn("Employee not found for deletion: {}", name);
+                            throw new ResourceNotFoundException("Employee not found: " + name);
+                        }
+                        logger.error("Client error while deleting employee {}: {}", name, response.getStatusCode());
+                        throw new ApiClientException("Client error: " + response.getStatusCode());
+                    })
+                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+                        logger.error("Server error while deleting employee {}: {}", name, response.getStatusCode());
+                        throw new ApiClientException("Server error from external API: " + response.getStatusCode());
+                    })
+                    .body(responseType);
+
+            if (apiResponse == null || apiResponse.getData() == null) {
+                logger.error("Received empty or invalid API response while deleting employee: {}", name);
+                throw new ApiClientException("Empty or invalid API response");
+            }
+
+            logger.debug("Successfully deleted employee: {}", name);
+            return apiResponse.getData();
+
+        } catch (Exception e) {
+            if (e instanceof ApiClientException
+                    || e instanceof RateLimitException
+                    || e instanceof ResourceNotFoundException) {
+                throw e;
+            }
+            logger.error("Error communicating with external API while deleting employee {}: {}", name, e.getMessage(), e);
+            throw new ApiClientException("Failed to communicate with external API", e);
+        }
     }
 }
