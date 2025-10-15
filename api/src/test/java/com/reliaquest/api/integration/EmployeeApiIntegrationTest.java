@@ -137,8 +137,6 @@ class EmployeeApiIntegrationTest {
         assertThat(topTenNames).isEqualTo(expectedTop10);
     }
 
-
-
     @Test
     @DisplayName("Spring Context should load successfully")
     void contextLoads() {

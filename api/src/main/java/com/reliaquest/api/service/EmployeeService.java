@@ -3,10 +3,8 @@ package com.reliaquest.api.service;
 import com.reliaquest.api.client.ApiClient;
 import com.reliaquest.api.dto.CreateEmployeeRequest;
 import com.reliaquest.api.dto.Employee;
-
 import java.util.List;
 import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -56,7 +54,8 @@ public class EmployeeService {
         List<Employee> employees = apiClient.fetchAllEmployees();
         String lowerCaseSearchString = searchString.toLowerCase();
         List<Employee> matchedEmployees = employees.stream()
-                .filter(emp -> emp.getName().toLowerCase().contains(lowerCaseSearchString)).toList();
+                .filter(emp -> emp.getName().toLowerCase().contains(lowerCaseSearchString))
+                .toList();
         logger.info("Service: Found {} employees matching search '{}'", matchedEmployees.size(), searchString);
         return matchedEmployees;
     }
@@ -75,10 +74,7 @@ public class EmployeeService {
 
         logger.info("Service: Fetching employee with id {}", id);
         List<Employee> employees = apiClient.fetchAllEmployees();
-        return employees.stream()
-                .filter(e -> e.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        return employees.stream().filter(e -> e.getId().equals(id)).findFirst().orElse(null);
     }
 
     /**
@@ -100,8 +96,11 @@ public class EmployeeService {
     public List<String> getTopTenHighestEarningEmployeeNames() {
         logger.info("Service: Fetching top 10 highest earning employee names");
         List<Employee> employees = apiClient.fetchAllEmployees();
-        return employees.stream().sorted((e1, e2) -> Integer.compare(e2.getSalary(), e1.getSalary())).limit(10)
-                .map(Employee::getName).toList();
+        return employees.stream()
+                .sorted((e1, e2) -> Integer.compare(e2.getSalary(), e1.getSalary()))
+                .limit(10)
+                .map(Employee::getName)
+                .toList();
     }
 
     /**

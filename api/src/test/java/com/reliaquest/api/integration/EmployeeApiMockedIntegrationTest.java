@@ -9,18 +9,15 @@ import static org.mockito.Mockito.when;
 import com.reliaquest.api.client.ApiClient;
 import com.reliaquest.api.dto.CreateEmployeeRequest;
 import com.reliaquest.api.dto.Employee;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
@@ -91,11 +88,8 @@ class EmployeeApiMockedIntegrationTest {
         when(apiClient.fetchAllEmployees()).thenReturn(List.of(mockEmployee));
         when(apiClient.deleteEmployee("Employee To Delete")).thenReturn(true);
 
-        String deletedEmployeeName = restClient
-                .delete()
-                .uri("/" + mockEmployee.getId())
-                .retrieve()
-                .body(String.class);
+        String deletedEmployeeName =
+                restClient.delete().uri("/" + mockEmployee.getId()).retrieve().body(String.class);
 
         assertThat(deletedEmployeeName).isEqualTo("Employee To Delete");
 
@@ -109,7 +103,7 @@ class EmployeeApiMockedIntegrationTest {
         when(apiClient.fetchAllEmployees()).thenReturn(List.of());
 
         assertThatThrownBy(() ->
-                restClient.delete().uri("/invalid-id-99999").retrieve().body(String.class))
+                        restClient.delete().uri("/invalid-id-99999").retrieve().body(String.class))
                 .isInstanceOf(HttpClientErrorException.NotFound.class);
 
         verify(apiClient).fetchAllEmployees();
@@ -124,13 +118,17 @@ class EmployeeApiMockedIntegrationTest {
         invalidEmployee.put("age", "30");
         invalidEmployee.put("title", "Test");
 
-        assertThatThrownBy(() ->
-                restClient.post().uri("").body(invalidEmployee).retrieve().body(Employee.class))
+        assertThatThrownBy(() -> restClient
+                        .post()
+                        .uri("")
+                        .body(invalidEmployee)
+                        .retrieve()
+                        .body(Employee.class))
                 .satisfies(ex -> {
-                    assertThat(ex).isInstanceOfAny(
-                            HttpClientErrorException.BadRequest.class,
-                            org.springframework.web.client.HttpServerErrorException.class
-                    );
+                    assertThat(ex)
+                            .isInstanceOfAny(
+                                    HttpClientErrorException.BadRequest.class,
+                                    org.springframework.web.client.HttpServerErrorException.class);
                 });
     }
 
@@ -153,7 +151,8 @@ class EmployeeApiMockedIntegrationTest {
         employeeData.put("age", 25);
         employeeData.put("title", "Developer");
 
-        Employee result = restClient.post().uri("").body(employeeData).retrieve().body(Employee.class);
+        Employee result =
+                restClient.post().uri("").body(employeeData).retrieve().body(Employee.class);
 
         assertThat(result).isNotNull();
         assertThat(result.getSalary()).isEqualTo(50000);
