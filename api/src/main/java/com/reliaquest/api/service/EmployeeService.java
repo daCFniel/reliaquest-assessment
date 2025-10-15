@@ -67,14 +67,10 @@ public class EmployeeService {
     public Employee getEmployeeById(final String id) {
         logger.info("Service: Fetching employee with id {}", id);
         List<Employee> employees = apiClient.fetchAllEmployees();
-        for (Employee employee : employees) {
-            if (employee.getId().equals(id)) {
-                logger.info("Service: Found employee with id {}", id);
-                return employee;
-            }
-        }
-        logger.warn("Service: Employee with id {} not found", id);
-        return null;
+        return employees.stream()
+                .filter(e -> e.getId().equals(id))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -108,10 +104,10 @@ public class EmployeeService {
      */
     public Employee createEmployee(final CreateEmployeeRequest employeeRequest) {
         logger.info("Service: Creating employee: {}", employeeRequest.getName());
-        
+
         Employee createdEmployee = apiClient.createEmployee(employeeRequest);
         logger.info("Service: Successfully created employee with id: {}", createdEmployee.getId());
-        
+
         return createdEmployee;
     }
 
