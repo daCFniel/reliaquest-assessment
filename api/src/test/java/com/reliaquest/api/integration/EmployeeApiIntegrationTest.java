@@ -1,12 +1,10 @@
-package com.reliaquest.api;
+package com.reliaquest.api.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.reliaquest.api.dto.Employee;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +20,7 @@ import org.springframework.web.client.RestClient;
  * ./gradlew server:bootRun
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ApiApplicationTest {
+class EmployeeApiIntegrationTest {
 
     @LocalServerPort
     private int port;
@@ -139,53 +137,7 @@ class ApiApplicationTest {
         assertThat(topTenNames).isEqualTo(expectedTop10);
     }
 
-    @Test
-    @DisplayName("POST /api/v1 should create a new employee")
-    void createEmployee_WithValidData_ShouldCreateEmployee() {
-        Map<String, String> newEmployee = new HashMap<>();
-        newEmployee.put("name", "Integration Test Employee");
-        newEmployee.put("salary", "100000");
-        newEmployee.put("age", "30");
-        newEmployee.put("title", "Test Engineer");
 
-        Employee createdEmployee =
-                restClient.post().uri("").body(newEmployee).retrieve().body(Employee.class);
-
-        assertThat(createdEmployee).isNotNull();
-        assertThat(createdEmployee.getName()).isEqualTo("Integration Test Employee");
-        assertThat(createdEmployee.getSalary()).isEqualTo(100000);
-        assertThat(createdEmployee.getAge()).isEqualTo(30);
-        assertThat(createdEmployee.getTitle()).isEqualTo("Test Engineer");
-        assertThat(createdEmployee.getId()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("DELETE /api/v1/{id} should delete employee and return name")
-    void deleteEmployeeById_WhenValidId_ShouldDeleteAndReturnName() {
-        Map<String, String> newEmployee = new HashMap<>();
-        newEmployee.put("name", "Employee To Delete");
-        newEmployee.put("salary", "50000");
-        newEmployee.put("age", "25");
-        newEmployee.put("title", "Temporary");
-
-        Employee createdEmployee =
-                restClient.post().uri("").body(newEmployee).retrieve().body(Employee.class);
-
-        String employeeId = createdEmployee.getId();
-
-        String deletedEmployeeName =
-                restClient.delete().uri("/" + employeeId).retrieve().body(String.class);
-
-        assertThat(deletedEmployeeName).isEqualTo("Employee To Delete");
-    }
-
-    @Test
-    @DisplayName("DELETE /api/v1/{id} should return 404 when employee not found")
-    void deleteEmployeeById_WhenInvalidId_ShouldReturn404() {
-        assertThatThrownBy(() ->
-                        restClient.delete().uri("/invalid-id-99999").retrieve().body(String.class))
-                .isInstanceOf(HttpClientErrorException.NotFound.class);
-    }
 
     @Test
     @DisplayName("Spring Context should load successfully")

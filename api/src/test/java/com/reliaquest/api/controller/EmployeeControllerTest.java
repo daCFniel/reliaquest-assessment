@@ -21,7 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @ExtendWith(MockitoExtension.class)
-class EmployeeControllerMockTest {
+class EmployeeControllerTest {
 
     @Mock
     private EmployeeService employeeService;
@@ -216,3 +216,4 @@ class EmployeeControllerMockTest {
         verify(employeeService, times(1)).deleteEmployeeById(employeeId);
     }
 }
+

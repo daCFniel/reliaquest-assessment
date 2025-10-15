@@ -6,9 +6,13 @@ import com.reliaquest.api.dto.Employee;
 import com.reliaquest.api.exception.ApiClientException;
 import com.reliaquest.api.exception.RateLimitException;
 import com.reliaquest.api.exception.ResourceNotFoundException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -28,6 +32,9 @@ public class ApiClient {
         this.restClient = restClient;
     }
 
+    @Cacheable(value = "employees", unless = "#result == null || #result.isEmpty()")
+    @Retry(name = "employeeAPI")
+    @CircuitBreaker(name = "employeeAPI")
     public List<Employee> fetchAllEmployees() {
         logger.info("Fetching all employees from mock API");
 
@@ -75,6 +82,9 @@ public class ApiClient {
         }
     }
 
+    @CacheEvict(value = "employees", allEntries = true)
+    @Retry(name = "employeeAPI")
+    @CircuitBreaker(name = "employeeAPI")
     public Employee createEmployee(final CreateEmployeeRequest employeeRequest) {
         logger.info("Creating employee in mock API: {}", employeeRequest.getName());
 
@@ -122,6 +132,9 @@ public class ApiClient {
         }
     }
 
+    @CacheEvict(value = "employees", allEntries = true)
+    @Retry(name = "employeeAPI")
+    @CircuitBreaker(name = "employeeAPI")
     public boolean deleteEmployee(final String name) {
         logger.info("Deleting employee from mock API: {}", name);
 
