@@ -47,8 +47,13 @@ public class EmployeeService {
      *
      * @param searchString the text to search for in employee names
      * @return a list of employees whose names match the search criteria
+     * @throws IllegalArgumentException if searchString is null or blank
      */
     public List<Employee> searchEmployeesByName(final String searchString) {
+        if (searchString == null || searchString.isBlank()) {
+            throw new IllegalArgumentException("Search string cannot be null or blank");
+        }
+
         logger.info("Service: Searching employees with name containing '{}'", searchString);
         List<Employee> employees = apiClient.fetchAllEmployees();
         String lowerCaseSearchString = searchString.toLowerCase();
@@ -63,8 +68,13 @@ public class EmployeeService {
      *
      * @param id the unique identifier of the employee
      * @return the employee with the given ID, or null if not found
+     * @throws IllegalArgumentException if id is null or blank
      */
     public Employee getEmployeeById(final String id) {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("Employee ID cannot be null or blank");
+        }
+
         logger.info("Service: Fetching employee with id {}", id);
         List<Employee> employees = apiClient.fetchAllEmployees();
         return employees.stream()
@@ -101,13 +111,16 @@ public class EmployeeService {
      *
      * @param employeeRequest the employee data to create
      * @return the newly created employee with its assigned ID
+     * @throws IllegalArgumentException if employeeRequest is null
      */
     public Employee createEmployee(final CreateEmployeeRequest employeeRequest) {
-        logger.info("Service: Creating employee: {}", employeeRequest.getName());
+        if (employeeRequest == null) {
+            throw new IllegalArgumentException("Employee request cannot be null");
+        }
 
+        logger.info("Service: Creating employee: {}", employeeRequest.getName());
         Employee createdEmployee = apiClient.createEmployee(employeeRequest);
         logger.info("Service: Successfully created employee with id: {}", createdEmployee.getId());
-
         return createdEmployee;
     }
 
@@ -116,8 +129,13 @@ public class EmployeeService {
      *
      * @param id the unique identifier of the employee to delete
      * @return the name of the deleted employee, or null if not found
+     * @throws IllegalArgumentException if id is null or blank
      */
     public String deleteEmployeeById(final String id) {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("Employee ID cannot be null or blank");
+        }
+
         logger.info("Deleting employee with id: {}", id);
 
         // The mock api delete endpoint
